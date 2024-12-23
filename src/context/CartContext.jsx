@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext } from 'react';
 import { CheckoutModal } from '../components/CheckoutModal/CheckoutModal';
+import { CartModal } from '../components/CartModal/CartModal';
 
 const CartContext = createContext();
 
@@ -44,6 +45,7 @@ export const CartProvider = ({ children }) => {
         }}>
             {children}
             {showCheckoutModal && <CheckoutModal />}
+            {showCartModal && <CartModal />}
         </CartContext.Provider>
     );
 };

@@ -1,11 +1,15 @@
 import React, { useRef, useEffect, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
-import { Bookmark } from 'lucide-react';
+import { Bookmark, CreditCard, ShoppingCart } from 'lucide-react';
 import Chapter1 from './src/components/Chapter1';
 import Chapter2 from './src/components/Chapter2';
 import Discovery from './src/components/Discovery';
 import Page from './src/Page';
 import useSearchParam from './src/hooks/usePreservedSearchParam';
+import { useCart } from './src/context/CartContext';
+import { CartModal } from './src/components/CartModal/CartModal';
+import Menu from './src/components/Menu/Menu';
+import BookmarkNavigation from './src/components/BookmarkNavigation/BookmarkNavigation';
 
 const BookContainer = () => {
     const book = useRef();
@@ -15,11 +19,14 @@ const BookContainer = () => {
     const [isFlipping, setIsFlipping] = useState(false);
     const [tabNumber, setTabNumber] = useSearchParam("tabNumber", 2)
     const [isBookReady, setIsBookReady] = useState(false);
+    const { setShowCartModal, showCartModal, setShowCheckoutModal } = useCart();
+    const [showFloatingButtons] = useState(true);
 
     const pages = [
         { content: <Chapter1 />, number: 1 },
         { content: <Chapter2 />, number: 2 },
-        { content: <Discovery />, number: 3 }
+        { content: <Menu />, number: 3 },
+        { content: <Discovery />, number: 4 }
     ];
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -93,35 +100,46 @@ const BookContainer = () => {
             }
         }
     }, [tabNumber]);
-
+    const handleShowCartModal = () => {
+        setShowCartModal(true); // Trigger the modal in the Menu component
+        setShowCheckoutModal(false)
+    };
+    const handleShowCheckoutModal = () => {
+        setShowCheckoutModal(true);
+        setShowCartModal(false)
+    };
     return (
         <div className="fixed inset-0 bg-amber-50 flex items-center justify-center overflow-hidden" ref={containerRef}>
             <div className="relative w-full h-full">
+                {/* Bookmark Navigation - Middle Right */}
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 space-y-4 z-10">
-                    {pages.map((page) => (
-                        <div
-                            key={page.number}
-                            className={`group flex items-center gap-2 ${isFlipping ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
-                            onClick={() => handlePageFlip(page.number)}
-                        >
-                            <div
-                                className={`
-                  transition-all duration-300 opacity-0 group-hover:opacity-100 
-                  bg-white px-3 py-1 rounded shadow-lg text-sm
-                  ${currentPage === page.number - 1 ? 'text-red-500' : 'text-gray-600'}
-                `}
-                            >
-                                Page {page.number}
-                            </div>
-                            <Bookmark
-                                className={`w-6 h-6 transition-colors duration-300
-                  ${currentPage === page.number - 1 ? 'text-red-500' : 'text-gray-400'} 
-                  hover:text-red-500`}
-                            />
-                        </div>
-                    ))}
+                    <BookmarkNavigation
+                        pages={pages}
+                        currentPage={currentPage}
+                        isFlipping={isFlipping}
+                        handlePageFlip={handlePageFlip}
+                    />
                 </div>
 
+                {/* Floating Buttons - Bottom Right */}
+                {showFloatingButtons && (
+                    <div className="absolute right-4 bottom-4 space-y-4 z-10">
+                        <button
+                            onClick={handleShowCartModal}
+                            className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-gray-100 hover:scale-110 transition-all duration-300"
+                        >
+                            <ShoppingCart className="w-6 h-6" />
+                        </button>
+                        <button
+                            onClick={handleShowCheckoutModal}
+                            className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-gray-100 hover:scale-110 transition-all duration-300"
+                        >
+                            <CreditCard className="w-6 h-6" />
+                        </button>
+                    </div>
+                )}
+
+                {/* Flipbook */}
                 {dimensions.width > 0 && dimensions.height > 0 && (
                     <HTMLFlipBook
                         ref={book}
@@ -132,7 +150,7 @@ const BookContainer = () => {
                         maxWidth={dimensions.width}
                         minHeight={dimensions.height}
                         maxHeight={dimensions.height}
-                        maxShadowOpacity={1.4}
+                        maxShadowOpacity={1.9}
                         showCover={false}
                         mobileScrollSupport={false}
                         useMouseEvents={false}
@@ -147,6 +165,7 @@ const BookContainer = () => {
             </div>
         </div>
     );
+
 };
 
 export default BookContainer;
