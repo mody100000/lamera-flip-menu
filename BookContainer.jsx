@@ -1,15 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { Bookmark, CreditCard, ShoppingCart } from 'lucide-react';
-import Chapter1 from './src/components/Chapter1';
-import Chapter2 from './src/components/Chapter2';
-import Discovery from './src/components/Discovery';
 import Page from './src/Page';
 import useSearchParam from './src/hooks/usePreservedSearchParam';
 import { useCart } from './src/context/CartContext';
-import { CartModal } from './src/components/CartModal/CartModal';
 import Menu from './src/components/Menu/Menu';
 import BookmarkNavigation from './src/components/BookmarkNavigation/BookmarkNavigation';
+import Menu2 from './src/components/Menu2/Menu2';
+import Menu3 from './src/components/Menu3/Menu3';
+import Menu4 from './src/components/Menu4/Menu4';
 
 const BookContainer = () => {
     const book = useRef();
@@ -23,10 +22,10 @@ const BookContainer = () => {
     const [showFloatingButtons] = useState(true);
 
     const pages = [
-        { content: <Chapter1 />, number: 1 },
-        { content: <Chapter2 />, number: 2 },
+        { content: <Menu2 />, number: 1 },
+        { content: <Menu3 />, number: 2 },
         { content: <Menu />, number: 3 },
-        { content: <Discovery />, number: 4 }
+        { content: <Menu4 />, number: 4 }
     ];
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
