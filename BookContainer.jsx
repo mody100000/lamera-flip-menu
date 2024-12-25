@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
-import { Bookmark, CreditCard, ShoppingCart } from 'lucide-react';
-import Page from './src/Page';
+import { CreditCard, ShoppingCart } from 'lucide-react';
 import useSearchParam from './src/hooks/usePreservedSearchParam';
 import { useCart } from './src/context/CartContext';
 import Menu from './src/components/Menu/Menu';
@@ -10,40 +9,69 @@ import Menu2 from './src/components/Menu2/Menu2';
 import Menu3 from './src/components/Menu3/Menu3';
 import Menu4 from './src/components/Menu4/Menu4';
 
+// Create a Page component for individual pages
+const Page = React.forwardRef(({ position, children }, ref) => {
+    return (
+        <div ref={ref} className="relative w-full h-full bg-white">
+            {/* Spine shadow */}
+            <div
+                className={`absolute inset-y-0 pointer-events-none ${position === 'left'
+                    ? 'right-0 w-24 bg-gradient-to-l from-black/20 via-black/10 to-transparent'
+                    : 'left-0 w-24 bg-gradient-to-r from-black/20 via-black/10 to-transparent'
+                    }`}
+            />
+            {children}
+        </div>
+    );
+});
+
 const BookContainer = () => {
     const book = useRef();
     const containerRef = useRef();
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-    const [currentPage, setCurrentPage] = useState(0);
+    const [currentSpread, setCurrentSpread] = useState(0);
     const [isFlipping, setIsFlipping] = useState(false);
-    const [tabNumber, setTabNumber] = useSearchParam("tabNumber", 2)
+    const [spreadNumber, setSpreadNumber] = useSearchParam("spreadNumber", 1);
     const [isBookReady, setIsBookReady] = useState(false);
-    const { setShowCartModal, showCartModal, setShowCheckoutModal } = useCart();
+    const { setShowCartModal, setShowCheckoutModal } = useCart();
     const [showFloatingButtons] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
 
-    const pages = [
-        { content: <Menu2 />, number: 1 },
-        { content: <Menu3 />, number: 2 },
-        { content: <Menu />, number: 3 },
-        { content: <Menu4 />, number: 4 }
+    // Define spreads for desktop
+    const desktopSpreads = [
+        { leftContent: <Menu2 />, rightContent: <Menu4 />, spreadNumber: 1 },
+        { leftContent: <Menu />, rightContent: <Menu3 />, spreadNumber: 2 }
+    ];
+
+    // Define spreads for mobile
+    const mobileSpreads = [
+        { leftContent: <Menu2 />, rightContent: null, spreadNumber: 1 },
+        { leftContent: <Menu4 />, rightContent: null, spreadNumber: 2 },
+        { leftContent: <Menu />, rightContent: null, spreadNumber: 3 },
+        { leftContent: <Menu3 />, rightContent: null, spreadNumber: 4 }
     ];
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    const setInitialPage = () => {
+    const setInitialSpread = () => {
         if (!book.current || !isBookReady) return;
-        setIsFlipping(true)
-        book.current.pageFlip().turnToPage(tabNumber - 1);
-        setIsFlipping(false)
+        setIsFlipping(true);
+        // Multiply by 2 for desktop spreads, keep as is for mobile
+        const pageIndex = (spreadNumber - 1) * (isMobile ? 1 : 2);
+        book.current.pageFlip().turnToPage(pageIndex);
+        setIsFlipping(false);
     };
 
     useEffect(() => {
         const updateDimensions = () => {
             if (containerRef.current) {
+                const width = window.innerWidth;
+                const height = window.innerHeight;
                 setDimensions({
-                    width: window.innerWidth,
-                    height: window.innerHeight,
+                    width: Math.floor(width / (width <= 768 ? 1 : 2)), // Adjust width for mobile
+                    height: height,
                 });
+                setIsMobile(width <= 768);
             }
         };
 
@@ -52,75 +80,76 @@ const BookContainer = () => {
         return () => window.removeEventListener('resize', updateDimensions);
     }, []);
 
-    // Handle book initialization
     useEffect(() => {
         if (dimensions.width > 0 && dimensions.height > 0 && book.current) {
             setIsBookReady(true);
         }
     }, [dimensions.width, dimensions.height, book.current]);
 
-    // Set initial page once book is ready
     useEffect(() => {
         if (isBookReady) {
-            // Add a small delay to ensure the book is fully initialized
-            setTimeout(setInitialPage, 100);
+            setTimeout(setInitialSpread, 100);
         }
     }, [isBookReady]);
 
-    const handlePageFlip = async (targetPage) => {
+    const handleSpreadFlip = async (targetSpread) => {
         if (isFlipping || !book.current) return;
 
         setIsFlipping(true);
         const pageFlip = book.current.pageFlip();
         const flippingTime = 500;
         let currentIndex = pageFlip.getCurrentPageIndex();
-        const targetIndex = targetPage - 1;
+        // Multiply by 2 for desktop spreads, keep as is for mobile
+        const targetIndex = (targetSpread - 1) * (isMobile ? 1 : 2);
 
-        // Update tabNumber first to ensure URL sync
-        setTabNumber(targetPage);
+        setSpreadNumber(targetSpread);
 
         while (currentIndex !== targetIndex) {
-            const direction = targetIndex > currentIndex ? 1 : -1;
+            const direction = targetIndex > currentIndex ? (isMobile ? 1 : 2) : (isMobile ? -1 : -2);
             pageFlip.flip(currentIndex + direction);
             await sleep(flippingTime + 100);
             currentIndex = pageFlip.getCurrentPageIndex();
         }
 
-        setCurrentPage(targetIndex);
+        setCurrentSpread(isMobile ? targetIndex : Math.floor(targetIndex / 2));
         setIsFlipping(false);
     };
 
-    // Add effect to handle tabNumber changes
     useEffect(() => {
         if (isBookReady && !isFlipping) {
-            const targetPage = tabNumber - 1;
-            if (currentPage !== targetPage) {
-                handlePageFlip(tabNumber);
+            if (currentSpread !== spreadNumber - 1) {
+                handleSpreadFlip(spreadNumber);
             }
         }
-    }, [tabNumber]);
+    }, [spreadNumber]);
+
     const handleShowCartModal = () => {
-        setShowCartModal(true); // Trigger the modal in the Menu component
-        setShowCheckoutModal(false)
+        setShowCartModal(true);
+        setShowCheckoutModal(false);
     };
+
     const handleShowCheckoutModal = () => {
         setShowCheckoutModal(true);
-        setShowCartModal(false)
+        setShowCartModal(false);
     };
+
+    // Use appropriate spreads based on device type
+    const spreads = isMobile ? mobileSpreads : desktopSpreads;
+
     return (
         <div className="fixed inset-0 bg-amber-50 flex items-center justify-center overflow-hidden" ref={containerRef}>
             <div className="relative w-full h-full">
-                {/* Bookmark Navigation - Middle Right */}
+                {/* Bookmark Navigation */}
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 space-y-4 z-10">
                     <BookmarkNavigation
-                        pages={pages}
-                        currentPage={currentPage}
+                        spreads={spreads}
+                        currentSpread={currentSpread}
                         isFlipping={isFlipping}
-                        handlePageFlip={handlePageFlip}
+                        handleSpreadFlip={handleSpreadFlip}
                     />
                 </div>
 
-                {/* Floating Buttons - Bottom Right */}
+                {/* Floating Buttons */}
                 {showFloatingButtons && (
                     <div className="absolute right-4 bottom-4 space-y-4 z-10">
                         <button
@@ -149,22 +178,29 @@ const BookContainer = () => {
                         maxWidth={dimensions.width}
                         minHeight={dimensions.height}
                         maxHeight={dimensions.height}
-                        maxShadowOpacity={1.9}
+                        maxShadowOpacity={0.5}
                         showCover={false}
                         mobileScrollSupport={false}
                         useMouseEvents={false}
-                        onFlip={(e) => setCurrentPage(e.data)}
+                        onFlip={(e) => setCurrentSpread(Math.floor(e.data / (isMobile ? 1 : 2)))}
                         flippingTime={500}
+                        showPageCorners={true}
                     >
-                        {pages.map((page) => (
-                            <Page key={page.number} content={page.content} number={page.number} />
-                        ))}
+                        {spreads.flatMap((spread) => [
+                            <Page key={`${spread.spreadNumber}-left`} position="left">
+                                {spread.leftContent}
+                            </Page>,
+                            !isMobile && spread.rightContent && (
+                                <Page key={`${spread.spreadNumber}-right`} position="right">
+                                    {spread.rightContent}
+                                </Page>
+                            )
+                        ].filter(Boolean))}
                     </HTMLFlipBook>
                 )}
             </div>
         </div>
     );
-
 };
 
 export default BookContainer;

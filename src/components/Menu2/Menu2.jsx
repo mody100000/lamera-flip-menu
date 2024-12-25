@@ -178,7 +178,6 @@ const Menu2 = () => {
                 onLoad={() => setImageLoaded(true)}
                 className="w-full h-full fixed top-0 left-0 z-10"
             />
-
             <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-lg z-10 text-center pointer-events-none md:hidden">
                 Click on text to scan
             </div>
