@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
-import { CreditCard, ShoppingCart } from 'lucide-react';
+import { CreditCard, ShoppingCart, Star } from 'lucide-react';
 import useSearchParam from './src/hooks/usePreservedSearchParam';
 import { useCart } from './src/context/CartContext';
 import Menu from './src/components/Menu/Menu';
@@ -8,7 +8,8 @@ import BookmarkNavigation from './src/components/BookmarkNavigation/BookmarkNavi
 import Menu2 from './src/components/Menu2/Menu2';
 import Menu3 from './src/components/Menu3/Menu3';
 import Menu4 from './src/components/Menu4/Menu4';
-
+import foodImg from "@assets/burger.webp";
+import { toast } from 'sonner';
 // Create a Page component for individual pages
 const Page = React.forwardRef(({ position, children }, ref) => {
     return (
@@ -33,22 +34,61 @@ const BookContainer = () => {
     const [isFlipping, setIsFlipping] = useState(false);
     const [spreadNumber, setSpreadNumber] = useSearchParam("spreadNumber", 1);
     const [isBookReady, setIsBookReady] = useState(false);
-    const { setShowCartModal, setShowCheckoutModal } = useCart();
     const [showFloatingButtons] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
 
+    const [showFoodModal, setShowFoodModal] = useState(false);
+    const [detectedText, setDetectedText] = useState('');
+    const [quantity, setQuantity] = useState(1);
+    const [selectedSize, setSelectedSize] = useState('Medium');
+    const { addToCart, setShowCartModal, setShowCheckoutModal } = useCart();
+
+    const sizes = ['Small', 'Medium', 'Large'];
+    const price = 120.99;
+    const rating = 4;
+
+    const handleTextDetected = (text) => {
+        setDetectedText(text);
+        setShowFoodModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowFoodModal(false);
+        setDetectedText('');
+        setQuantity(1);
+        setSelectedSize('Medium');
+    };
+
+    const addToCartHandler = () => {
+        const newItem = {
+            id: Date.now(),
+            name: detectedText,
+            size: selectedSize,
+            quantity: quantity,
+            price: price,
+            image: foodImg
+        };
+
+        addToCart(newItem);
+        toast.success('تمت إضافة العنصر إلى السلة', {
+            position: 'top-right',
+            duration: 2000
+        });
+        handleCloseModal();
+    };
+
     // Define spreads for desktop
     const desktopSpreads = [
-        { leftContent: <Menu2 />, rightContent: <Menu4 />, spreadNumber: 1 },
-        { leftContent: <Menu />, rightContent: <Menu3 />, spreadNumber: 2 }
+        { leftContent: <Menu2 onTextDetected={handleTextDetected} />, rightContent: <Menu4 onTextDetected={handleTextDetected} />, spreadNumber: 1 },
+        { leftContent: <Menu onTextDetected={handleTextDetected} />, rightContent: <Menu3 onTextDetected={handleTextDetected} />, spreadNumber: 2 }
     ];
 
     // Define spreads for mobile
     const mobileSpreads = [
-        { leftContent: <Menu2 />, rightContent: null, spreadNumber: 1 },
-        { leftContent: <Menu4 />, rightContent: null, spreadNumber: 2 },
-        { leftContent: <Menu />, rightContent: null, spreadNumber: 3 },
-        { leftContent: <Menu3 />, rightContent: null, spreadNumber: 4 }
+        { leftContent: <Menu2 onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 1 },
+        { leftContent: <Menu4 onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 2 },
+        { leftContent: <Menu onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 3 },
+        { leftContent: <Menu3 onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 4 }
     ];
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -135,7 +175,15 @@ const BookContainer = () => {
 
     // Use appropriate spreads based on device type
     const spreads = isMobile ? mobileSpreads : desktopSpreads;
-
+    const renderStars = (count) => {
+        return [...Array(5)].map((_, index) => (
+            <Star
+                key={index}
+                className={`inline-block ${index < count ? 'text-yellow-500 fill-current' : 'text-gray-300'}`}
+                size={24}
+            />
+        ));
+    };
     return (
         <div className="fixed inset-0 bg-amber-50 flex items-center justify-center overflow-hidden" ref={containerRef}>
             <div className="relative w-full h-full">
@@ -180,11 +228,13 @@ const BookContainer = () => {
                         maxHeight={dimensions.height}
                         maxShadowOpacity={0.5}
                         showCover={false}
-                        mobileScrollSupport={false}
+                        mobileScrollSupport={true}
                         useMouseEvents={false}
                         onFlip={(e) => setCurrentSpread(Math.floor(e.data / (isMobile ? 1 : 2)))}
                         flippingTime={500}
                         showPageCorners={true}
+                        drawShadow={true}
+                    // swipeDistance={200}
                     >
                         {spreads.flatMap((spread) => [
                             <Page key={`${spread.spreadNumber}-left`} position="left">
@@ -197,6 +247,105 @@ const BookContainer = () => {
                             )
                         ].filter(Boolean))}
                     </HTMLFlipBook>
+                )}
+
+                {/* //textModal  */}
+                {showFoodModal && (
+                    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+                        <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-3xl max-h-[90%] overflow-y-auto flex flex-col">
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between bg-gray-100 p-6 rounded-t-lg">
+                                <button
+                                    onClick={handleCloseModal}
+                                    className="text-gray-600 hover:text-gray-800 transition-colors text-4xl"
+                                >
+                                    ×
+                                </button>
+                                <div className="text-2xl font-thin">التفاصيل</div>
+                            </div>
+
+                            {/* Modal Content */}
+                            <div className="p-8 flex flex-col md:flex-row gap-8">
+                                {/* Food Image */}
+                                <div className="w-full md:w-1/2">
+                                    <img
+                                        src={foodImg}
+                                        alt="وجبة طعام"
+                                        className="w-full h-64 object-cover rounded-lg"
+                                    />
+                                </div>
+
+                                {/* Food Details */}
+                                <div className="w-full md:w-1/2 text-right">
+                                    <h2 className="text-3xl font-bold mb-4">{detectedText}</h2>
+
+                                    {/* Rating */}
+                                    <div className="mb-4 flex justify-end items-center">
+                                        <span className="ml-2 text-gray-600">(١٢٤ تقييم)</span>
+                                        {renderStars(rating)}
+                                    </div>
+
+                                    {/* Price */}
+                                    <div className="text-2xl font-semibold text-green-600 mb-4">
+                                        {price.toFixed(2)} EGP
+                                    </div>
+
+                                    {/* Description */}
+                                    <p className="text-gray-700 mb-4">
+                                        برجر شهي مصنوع من لحم بقري فاخر، مع خس طازج،
+                                        طماطم، وصلصتنا السرية المميزة. يقدم مع البطاطس المقلية المقرمشة.
+                                    </p>
+
+                                    {/* Size Selection */}
+                                    <div className="mb-4">
+                                        <label className="block mb-2 font-medium text-xl">الحجم</label>
+                                        <div className="flex gap-2 justify-end">
+                                            {sizes.map((size) => (
+                                                <button
+                                                    key={size}
+                                                    className={`px-4 py-2 rounded-lg border ${selectedSize === size
+                                                        ? 'bg-blue-500 text-white'
+                                                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                                                        }`}
+                                                    onClick={() => setSelectedSize(size)}
+                                                >
+                                                    {size}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Quantity */}
+                                    <div className="mb-4 flex items-center justify-between">
+                                        <div className="flex items-center border rounded-lg ml-4">
+                                            <button
+                                                onClick={() => setQuantity(quantity + 1)}
+                                                className="px-3 py-1 hover:bg-gray-100"
+                                            >
+                                                +
+                                            </button>
+                                            <span className="px-4">{quantity}</span>
+                                            <button
+                                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                                className="px-3 py-1 hover:bg-gray-100"
+                                            >
+                                                -
+                                            </button>
+                                        </div>
+                                        <label className="font-medium text-xl">الكمية</label>
+                                    </div>
+
+                                    {/* Order Button */}
+                                    <button
+                                        className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors"
+                                        onClick={addToCartHandler}
+                                    >
+                                        EGP إضافة إلى الطلب - {(price * quantity).toFixed(2)}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>
