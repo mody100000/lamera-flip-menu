@@ -10,6 +10,7 @@ import Menu3 from './src/components/Menu3/Menu3';
 import Menu4 from './src/components/Menu4/Menu4';
 import foodImg from "@assets/burger.webp";
 import { toast } from 'sonner';
+import EnhancedFoodModal from './src/components/FoodModal/FoodModal';
 // Create a Page component for individual pages
 const Page = React.forwardRef(({ position, children }, ref) => {
     return (
@@ -218,6 +219,7 @@ const BookContainer = () => {
                 {/* Flipbook */}
                 {dimensions.width > 0 && dimensions.height > 0 && (
                     <HTMLFlipBook
+                        swipeDistance={4}
                         ref={book}
                         width={dimensions.width}
                         height={dimensions.height}
@@ -229,12 +231,11 @@ const BookContainer = () => {
                         maxShadowOpacity={0.5}
                         showCover={false}
                         mobileScrollSupport={true}
-                        useMouseEvents={false}
+                        useMouseEvents={true}
                         onFlip={(e) => setCurrentSpread(Math.floor(e.data / (isMobile ? 1 : 2)))}
                         flippingTime={500}
                         showPageCorners={true}
                         drawShadow={true}
-                    // swipeDistance={200}
                     >
                         {spreads.flatMap((spread) => [
                             <Page key={`${spread.spreadNumber}-left`} position="left">
@@ -249,104 +250,20 @@ const BookContainer = () => {
                     </HTMLFlipBook>
                 )}
 
-                {/* //textModal  */}
-                {showFoodModal && (
-                    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-                        <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-3xl max-h-[90%] overflow-y-auto flex flex-col">
-                            {/* Modal Header */}
-                            <div className="flex items-center justify-between bg-gray-100 p-6 rounded-t-lg">
-                                <button
-                                    onClick={handleCloseModal}
-                                    className="text-gray-600 hover:text-gray-800 transition-colors text-4xl"
-                                >
-                                    ×
-                                </button>
-                                <div className="text-2xl font-thin">التفاصيل</div>
-                            </div>
-
-                            {/* Modal Content */}
-                            <div className="p-8 flex flex-col md:flex-row gap-8">
-                                {/* Food Image */}
-                                <div className="w-full md:w-1/2">
-                                    <img
-                                        src={foodImg}
-                                        alt="وجبة طعام"
-                                        className="w-full h-64 object-cover rounded-lg"
-                                    />
-                                </div>
-
-                                {/* Food Details */}
-                                <div className="w-full md:w-1/2 text-right">
-                                    <h2 className="text-3xl font-bold mb-4">{detectedText}</h2>
-
-                                    {/* Rating */}
-                                    <div className="mb-4 flex justify-end items-center">
-                                        <span className="ml-2 text-gray-600">(١٢٤ تقييم)</span>
-                                        {renderStars(rating)}
-                                    </div>
-
-                                    {/* Price */}
-                                    <div className="text-2xl font-semibold text-green-600 mb-4">
-                                        {price.toFixed(2)} EGP
-                                    </div>
-
-                                    {/* Description */}
-                                    <p className="text-gray-700 mb-4">
-                                        برجر شهي مصنوع من لحم بقري فاخر، مع خس طازج،
-                                        طماطم، وصلصتنا السرية المميزة. يقدم مع البطاطس المقلية المقرمشة.
-                                    </p>
-
-                                    {/* Size Selection */}
-                                    <div className="mb-4">
-                                        <label className="block mb-2 font-medium text-xl">الحجم</label>
-                                        <div className="flex gap-2 justify-end">
-                                            {sizes.map((size) => (
-                                                <button
-                                                    key={size}
-                                                    className={`px-4 py-2 rounded-lg border ${selectedSize === size
-                                                        ? 'bg-blue-500 text-white'
-                                                        : 'bg-white text-gray-700 hover:bg-gray-100'
-                                                        }`}
-                                                    onClick={() => setSelectedSize(size)}
-                                                >
-                                                    {size}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Quantity */}
-                                    <div className="mb-4 flex items-center justify-between">
-                                        <div className="flex items-center border rounded-lg ml-4">
-                                            <button
-                                                onClick={() => setQuantity(quantity + 1)}
-                                                className="px-3 py-1 hover:bg-gray-100"
-                                            >
-                                                +
-                                            </button>
-                                            <span className="px-4">{quantity}</span>
-                                            <button
-                                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                                className="px-3 py-1 hover:bg-gray-100"
-                                            >
-                                                -
-                                            </button>
-                                        </div>
-                                        <label className="font-medium text-xl">الكمية</label>
-                                    </div>
-
-                                    {/* Order Button */}
-                                    <button
-                                        className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors"
-                                        onClick={addToCartHandler}
-                                    >
-                                        EGP إضافة إلى الطلب - {(price * quantity).toFixed(2)}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <EnhancedFoodModal
+                    showFoodModal={showFoodModal}
+                    handleCloseModal={handleCloseModal}
+                    foodImg={foodImg}
+                    detectedText={detectedText}
+                    rating={rating}
+                    price={price}
+                    sizes={sizes}
+                    selectedSize={selectedSize}
+                    setSelectedSize={setSelectedSize}
+                    quantity={quantity}
+                    setQuantity={setQuantity}
+                    addToCartHandler={addToCartHandler}
+                />
             </div>
         </div>
     );

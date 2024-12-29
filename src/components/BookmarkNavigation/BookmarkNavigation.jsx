@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Bookmark as BookmarkIcon } from 'lucide-react';
 
 const BookmarkNavigation = ({ spreads, currentSpread, isFlipping, handleSpreadFlip }) => {
     const [isMobile, setIsMobile] = useState(false);
