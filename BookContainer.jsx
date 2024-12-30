@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
-import { CreditCard, ShoppingCart, Star } from 'lucide-react';
+import { CreditCard, ShoppingCart } from 'lucide-react';
 import useSearchParam from './src/hooks/usePreservedSearchParam';
 import { useCart } from './src/context/CartContext';
 import Menu from './src/components/Menu/Menu';
@@ -11,21 +11,7 @@ import Menu4 from './src/components/Menu4/Menu4';
 import foodImg from "@assets/burger.webp";
 import { toast } from 'sonner';
 import EnhancedFoodModal from './src/components/FoodModal/FoodModal';
-// Create a Page component for individual pages
-const Page = React.forwardRef(({ position, children }, ref) => {
-    return (
-        <div ref={ref} className="relative w-full h-full bg-white">
-            {/* Spine shadow */}
-            <div
-                className={`absolute inset-y-0 pointer-events-none ${position === 'left'
-                    ? 'right-0 w-24 bg-gradient-to-l from-black/20 via-black/10 to-transparent'
-                    : 'left-0 w-24 bg-gradient-to-r from-black/20 via-black/10 to-transparent'
-                    }`}
-            />
-            {children}
-        </div>
-    );
-});
+import Page from './src/pages/Page';
 
 const BookContainer = () => {
     const book = useRef();
@@ -173,98 +159,135 @@ const BookContainer = () => {
         setShowCheckoutModal(true);
         setShowCartModal(false);
     };
-
+    const startFlip = (e) => {
+        // Only allow flipping if it's from a drag action
+        if (!e.dragging) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+        return true;
+    };
     // Use appropriate spreads based on device type
     const spreads = isMobile ? mobileSpreads : desktopSpreads;
-    const renderStars = (count) => {
-        return [...Array(5)].map((_, index) => (
-            <Star
-                key={index}
-                className={`inline-block ${index < count ? 'text-yellow-500 fill-current' : 'text-gray-300'}`}
-                size={24}
-            />
-        ));
-    };
+
     return (
         <div className="fixed inset-0 bg-amber-50 flex items-center justify-center overflow-hidden" ref={containerRef}>
-            <div className="relative w-full h-full">
-                {/* Bookmark Navigation */}
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 space-y-4 z-10">
-                    <BookmarkNavigation
-                        spreads={spreads}
-                        currentSpread={currentSpread}
-                        isFlipping={isFlipping}
-                        handleSpreadFlip={handleSpreadFlip}
+            <div className="relative w-full h-full flex">
+                {/* Left Side Shadows */}
+                <div className="flex-none">
+                    {[...Array(5)].map((_, i) => (
+                        <div
+                            key={`left-stack-shadow-${i}`}
+                            className="absolute inset-y-0 left-0"
+                            style={{
+                                width: `${25 - i * 5}px`,
+                                background: `linear-gradient(to right, rgba(0,0,0,${0.25 - i * 0.05}), transparent)`,
+                                transform: `translateX(${i * 2}px)`,
+                                zIndex: -i,
+                            }}
+                        />
+                    ))}
+                </div>
+
+                {/* Flipbook */}
+                <div className="relative w-full h-full">
+                    {dimensions.width > 0 && dimensions.height > 0 && (
+                        <HTMLFlipBook
+                            ref={book}
+                            width={dimensions.width}
+                            height={dimensions.height}
+                            size="stretch"
+                            minWidth={dimensions.width}
+                            maxWidth={dimensions.width}
+                            minHeight={dimensions.height}
+                            maxHeight={dimensions.height}
+                            maxShadowOpacity={0.5}
+                            showCover={false}
+                            mobileScrollSupport={true}
+                            useMouseEvents={true}
+                            onFlip={(e) => setCurrentSpread(Math.floor(e.data / (isMobile ? 1 : 2)))}
+                            flippingTime={500}
+                            showPageCorners={true}
+                            drawShadow={true}
+                            swipeDistance={50}
+                            startZIndex={0}
+                            onFlipStart={startFlip}
+                            style={{ touchAction: 'none' }}
+                        >
+                            {spreads.flatMap((spread) => [
+                                <Page key={`${spread.spreadNumber}-left`} position="left" currentSpread={currentSpread} totalPages={spreads.length * (isMobile ? 1 : 2)}>
+                                    {spread.leftContent}
+                                </Page>,
+                                !isMobile && spread.rightContent && (
+                                    <Page key={`${spread.spreadNumber}-right`} position="right" currentSpread={currentSpread} totalPages={spreads.length * (isMobile ? 1 : 2)}>
+                                        {spread.rightContent}
+                                    </Page>
+                                ),
+                            ].filter(Boolean))}
+                        </HTMLFlipBook>
+                    )}
+
+                    <EnhancedFoodModal
+                        showFoodModal={showFoodModal}
+                        handleCloseModal={handleCloseModal}
+                        foodImg={foodImg}
+                        detectedText={detectedText}
+                        rating={rating}
+                        price={price}
+                        sizes={sizes}
+                        selectedSize={selectedSize}
+                        setSelectedSize={setSelectedSize}
+                        quantity={quantity}
+                        setQuantity={setQuantity}
+                        addToCartHandler={addToCartHandler}
                     />
                 </div>
 
-                {/* Floating Buttons */}
-                {showFloatingButtons && (
-                    <div className="absolute right-4 bottom-4 space-y-4 z-10">
-                        <button
-                            onClick={handleShowCartModal}
-                            className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-gray-100 hover:scale-110 transition-all duration-300"
-                        >
-                            <ShoppingCart className="w-6 h-6" />
-                        </button>
-                        <button
-                            onClick={handleShowCheckoutModal}
-                            className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-gray-100 hover:scale-110 transition-all duration-300"
-                        >
-                            <CreditCard className="w-6 h-6" />
-                        </button>
-                    </div>
-                )}
+                {/* Right Side Shadows */}
+                <div className="flex-none">
+                    {[...Array(5)].map((_, i) => (
+                        <div
+                            key={`right-stack-shadow-${i}`}
+                            className="absolute inset-y-0 right-0"
+                            style={{
+                                width: `${25 - i * 5}px`,
+                                background: `linear-gradient(to left, rgba(0,0,0,${0.25 - i * 0.05}), transparent)`,
+                                transform: `translateX(-${i * 2}px)`,
+                                zIndex: -i,
+                            }}
+                        />
+                    ))}
+                </div>
+            </div>
 
-                {/* Flipbook */}
-                {dimensions.width > 0 && dimensions.height > 0 && (
-                    <HTMLFlipBook
-                        swipeDistance={4}
-                        ref={book}
-                        width={dimensions.width}
-                        height={dimensions.height}
-                        size="stretch"
-                        minWidth={dimensions.width}
-                        maxWidth={dimensions.width}
-                        minHeight={dimensions.height}
-                        maxHeight={dimensions.height}
-                        maxShadowOpacity={0.5}
-                        showCover={false}
-                        mobileScrollSupport={true}
-                        useMouseEvents={true}
-                        onFlip={(e) => setCurrentSpread(Math.floor(e.data / (isMobile ? 1 : 2)))}
-                        flippingTime={500}
-                        showPageCorners={true}
-                        drawShadow={true}
-                    >
-                        {spreads.flatMap((spread) => [
-                            <Page key={`${spread.spreadNumber}-left`} position="left">
-                                {spread.leftContent}
-                            </Page>,
-                            !isMobile && spread.rightContent && (
-                                <Page key={`${spread.spreadNumber}-right`} position="right">
-                                    {spread.rightContent}
-                                </Page>
-                            )
-                        ].filter(Boolean))}
-                    </HTMLFlipBook>
-                )}
-
-                <EnhancedFoodModal
-                    showFoodModal={showFoodModal}
-                    handleCloseModal={handleCloseModal}
-                    foodImg={foodImg}
-                    detectedText={detectedText}
-                    rating={rating}
-                    price={price}
-                    sizes={sizes}
-                    selectedSize={selectedSize}
-                    setSelectedSize={setSelectedSize}
-                    quantity={quantity}
-                    setQuantity={setQuantity}
-                    addToCartHandler={addToCartHandler}
+            {/* Bookmark Navigation */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 space-y-4 z-10">
+                <BookmarkNavigation
+                    spreads={spreads}
+                    currentSpread={currentSpread}
+                    isFlipping={isFlipping}
+                    handleSpreadFlip={handleSpreadFlip}
                 />
             </div>
+
+            {/* Floating Buttons */}
+            {showFloatingButtons && (
+                <div className="absolute right-4 bottom-4 space-y-4 z-10">
+                    <button
+                        onClick={handleShowCartModal}
+                        className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-gray-100 hover:scale-110 transition-all duration-300"
+                    >
+                        <ShoppingCart className="w-6 h-6" />
+                    </button>
+                    <button
+                        onClick={handleShowCheckoutModal}
+                        className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-gray-100 hover:scale-110 transition-all duration-300"
+                    >
+                        <CreditCard className="w-6 h-6" />
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

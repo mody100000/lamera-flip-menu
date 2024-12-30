@@ -3,24 +3,63 @@
 @tailwind utilities;
 
 /* Hide scrollbar for Chrome, Safari and Opera */
-.app-page::-webkit-scrollbar {
-  display: none;
+.left-shadow-layer-0 {
+  width: 20px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 5.2), transparent);
+  transform: translateX(0px);
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
-.app-page {
-  -ms-overflow-style: none;
-  /* IE and Edge */
-  scrollbar-width: none;
-  /* Firefox */
+.left-shadow-layer-1 {
+  width: 16px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 4.16), transparent);
+  transform: translateX(2px);
 }
-@layer utilities {
-  .writing-vertical-rl {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-  }
 
-  .writing-horizontal-tb {
-    writing-mode: horizontal-tb;
-  }
+.left-shadow-layer-2 {
+  width: 12px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 4.12), transparent);
+  transform: translateX(4px);
+}
+
+.left-shadow-layer-3 {
+  width: 8px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 4.08), transparent);
+  transform: translateX(6px);
+}
+
+.left-shadow-layer-4 {
+  width: 4px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 4.04), transparent);
+  transform: translateX(8px);
+}
+
+/* Right Side Shadows */
+.right-shadow-layer-0 {
+  width: 20px;
+  background: linear-gradient(to left, rgba(255, 255, 255, 4.2), transparent);
+  transform: translateX(0px);
+}
+
+.right-shadow-layer-1 {
+  width: 16px;
+  background: linear-gradient(to left, rgba(255, 255, 255, 4.16), transparent);
+  transform: translateX(-2px);
+}
+
+.right-shadow-layer-2 {
+  width: 12px;
+  background: linear-gradient(to left, rgba(255, 255, 255, 4.12), transparent);
+  transform: translateX(-4px);
+}
+
+.right-shadow-layer-3 {
+  width: 8px;
+  background: linear-gradient(to left, rgba(255, 255, 255, 4.08), transparent);
+  transform: translateX(-6px);
+}
+
+.right-shadow-layer-4 {
+  width: 4px;
+  background: linear-gradient(to left, rgba(255, 255, 255, 4.04), transparent);
+  transform: translateX(-8px);
 }

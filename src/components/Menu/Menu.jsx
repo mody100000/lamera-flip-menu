@@ -120,30 +120,37 @@ const Menu = ({ onTextDetected }) => {
 
   return (
     <div className="w-full h-screen relative overflow-hidden">
+      {/* Shadows */}
+      <div className="absolute inset-0 pointer-events-none z-20">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={`shadow-layer-${i}`}
+            className="absolute inset-y-0 left-0"
+            style={{
+              width: `${30 - i * 5}px`,
+              background: `linear-gradient(to left, rgba(0,0,0,${0.2 - i * 0.04}), transparent)`,
+              transform: `translateX(${i * 2}px)`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Image */}
       <img
         ref={imageRef}
         src={menuImg}
         alt="menu image"
         onLoad={() => setImageLoaded(true)}
-        className="w-full h-full fixed top-0 left-0 z-10"
+        className="w-full h-full fixed top-0 left-0 z-0"
       />
 
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-lg z-10 text-center pointer-events-none md:hidden">
-        Click on text to scan
-      </div>
-
+      {/* Canvas */}
       <canvas
         ref={canvasRef}
         onClick={onCanvasClick}
         className="w-full h-full fixed top-0 left-0 z-10 cursor-pointer opacity-30 hover:opacity-100 transition-opacity duration-300"
         style={{ touchAction: 'none' }}
       />
-
-      {isLoading && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-lg z-20">
-          Scanning text...
-        </div>
-      )}
     </div>
   );
 };
