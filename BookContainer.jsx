@@ -12,6 +12,7 @@ import foodImg from "@assets/burger.webp";
 import { toast } from 'sonner';
 import EnhancedFoodModal from './src/components/FoodModal/FoodModal';
 import Page from './src/pages/Page';
+import BookShadowStripes from './src/Utility/BookShadowStripes';
 
 const BookContainer = () => {
     const book = useRef();
@@ -92,20 +93,38 @@ const BookContainer = () => {
     useEffect(() => {
         const updateDimensions = () => {
             if (containerRef.current) {
-                const width = window.innerWidth;
-                const height = window.innerHeight;
-                setDimensions({
-                    width: Math.floor(width / (width <= 768 ? 1 : 2)), // Adjust width for mobile
-                    height: height,
-                });
-                setIsMobile(width <= 768);
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                // Adjust width calculation based on screen size
+                const width = Math.floor(
+                    viewportWidth / (viewportWidth <= 768 ? 1 : 2) - (viewportWidth > 768 ? 20 : 0)
+                );
+                const height = viewportHeight;
+
+                setDimensions({ width, height });
+                setIsMobile(viewportWidth <= 768);
+
+                // Center the flipbook by setting padding dynamically
+                containerRef.current.style.display = "flex";
+                containerRef.current.style.alignItems = "center";
+                containerRef.current.style.justifyContent = "center";
+
+                // Adjust padding for desktop but not mobile
+                if (viewportWidth > 768) {
+                    containerRef.current.style.padding = `0 ${(viewportWidth - width * 2) / 2}px`; // Adjust for 2 pages
+                } else {
+                    containerRef.current.style.padding = "0"; // No extra padding for mobile
+                }
             }
         };
 
         updateDimensions();
-        window.addEventListener('resize', updateDimensions);
-        return () => window.removeEventListener('resize', updateDimensions);
+        window.addEventListener("resize", updateDimensions);
+        return () => window.removeEventListener("resize", updateDimensions);
     }, []);
+
+
 
     useEffect(() => {
         if (dimensions.width > 0 && dimensions.height > 0 && book.current) {
@@ -175,20 +194,7 @@ const BookContainer = () => {
         <div className="fixed inset-0 bg-amber-50 flex items-center justify-center overflow-hidden" ref={containerRef}>
             <div className="relative w-full h-full flex">
                 {/* Left Side Shadows */}
-                <div className="flex-none">
-                    {[...Array(5)].map((_, i) => (
-                        <div
-                            key={`left-stack-shadow-${i}`}
-                            className="absolute inset-y-0 left-0"
-                            style={{
-                                width: `${25 - i * 5}px`,
-                                background: `linear-gradient(to right, rgba(0,0,0,${0.25 - i * 0.05}), transparent)`,
-                                transform: `translateX(${i * 2}px)`,
-                                zIndex: -i,
-                            }}
-                        />
-                    ))}
-                </div>
+                <BookShadowStripes side="left" />
 
                 {/* Flipbook */}
                 <div className="relative w-full h-full">
@@ -215,6 +221,7 @@ const BookContainer = () => {
                             onFlipStart={startFlip}
                             style={{ touchAction: 'none' }}
                         >
+
                             {spreads.flatMap((spread) => [
                                 <Page key={`${spread.spreadNumber}-left`} position="left" currentSpread={currentSpread} totalPages={spreads.length * (isMobile ? 1 : 2)}>
                                     {spread.leftContent}
@@ -245,20 +252,8 @@ const BookContainer = () => {
                 </div>
 
                 {/* Right Side Shadows */}
-                <div className="flex-none">
-                    {[...Array(5)].map((_, i) => (
-                        <div
-                            key={`right-stack-shadow-${i}`}
-                            className="absolute inset-y-0 right-0"
-                            style={{
-                                width: `${25 - i * 5}px`,
-                                background: `linear-gradient(to left, rgba(0,0,0,${0.25 - i * 0.05}), transparent)`,
-                                transform: `translateX(-${i * 2}px)`,
-                                zIndex: -i,
-                            }}
-                        />
-                    ))}
-                </div>
+                <BookShadowStripes side="right" />
+
             </div>
 
             {/* Bookmark Navigation */}
