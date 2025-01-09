@@ -20,6 +20,7 @@ const BookShadowStripes = ({ side }) => {
                             rotate(${side === 'left' ? 0.5 : -0.5}deg)
                         `,
                         zIndex: 10 - i,
+                        // zindex: 20 + i
                     }}
                 />
             ))}
