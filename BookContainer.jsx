@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
-import { CreditCard, ShoppingCart } from 'lucide-react';
 import useSearchParam from './src/hooks/usePreservedSearchParam';
 import { useCart } from './src/context/CartContext';
 import Menu from './src/components/Menu/Menu';
@@ -14,6 +13,8 @@ import EnhancedFoodModal from './src/components/FoodModal/FoodModal';
 import Page from './src/pages/Page';
 import BookShadowStripes from './src/Utility/BookShadowStripes';
 import FloatingButtons from './src/components/FloatingButtons/FloatingButtons';
+import CoverPage from './src/components/CoverPage/CoverPage';
+import EmptyCover from './src/components/CoverPage/EmptyCover';
 
 const BookContainer = () => {
     const book = useRef();
@@ -67,16 +68,18 @@ const BookContainer = () => {
 
     // Define spreads for desktop
     const desktopSpreads = [
-        { leftContent: <Menu2 onTextDetected={handleTextDetected} />, rightContent: <Menu4 onTextDetected={handleTextDetected} />, spreadNumber: 1 },
-        { leftContent: <Menu onTextDetected={handleTextDetected} />, rightContent: <Menu3 onTextDetected={handleTextDetected} />, spreadNumber: 2 }
+        { leftContent: <EmptyCover />, rightContent: <CoverPage />, spreadNumber: 1 },
+        { leftContent: <Menu2 onTextDetected={handleTextDetected} />, rightContent: <Menu4 onTextDetected={handleTextDetected} />, spreadNumber: 2 },
+        { leftContent: <Menu onTextDetected={handleTextDetected} />, rightContent: <Menu3 onTextDetected={handleTextDetected} />, spreadNumber: 3 }
     ];
 
     // Define spreads for mobile
     const mobileSpreads = [
-        { leftContent: <Menu2 onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 1 },
-        { leftContent: <Menu4 onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 2 },
-        { leftContent: <Menu onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 3 },
-        { leftContent: <Menu3 onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 4 }
+        { leftContent: <CoverPage onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 1 },
+        { leftContent: <Menu2 onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 2 },
+        { leftContent: <Menu4 onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 3 },
+        { leftContent: <Menu onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 4 },
+        { leftContent: <Menu3 onTextDetected={handleTextDetected} />, rightContent: null, spreadNumber: 5 }
     ];
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
