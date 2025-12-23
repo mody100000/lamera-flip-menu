@@ -272,24 +272,12 @@ const BookContainer = () => {
             </div>
 
             {/* Floating Buttons */}
-            {
-                showFloatingButtons && (
-                    <div className="absolute right-4 bottom-4 space-y-4 z-10">
-                        <button
-                            onClick={handleShowCartModal}
-                            className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-gray-100 hover:scale-110 transition-all duration-300"
-                        >
-                            <ShoppingCart className="w-6 h-6" />
-                        </button>
-                        <button
-                            onClick={handleShowCheckoutModal}
-                            className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-gray-100 hover:scale-110 transition-all duration-300"
-                        >
-                            <CreditCard className="w-6 h-6" />
-                        </button>
-                    </div>
-                )
-            }
+      {showFloatingButtons && (
+                <FloatingButtons
+                    handleShowCartModal={handleShowCartModal}
+                    handleShowCheckoutModal={handleShowCheckoutModal}
+                />
+            )}
         </div >
     );
 };
