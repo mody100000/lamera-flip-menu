@@ -13,10 +13,10 @@ const App = () => {
         <Router>
           <Routes>
             {/* Default route for the BookContainer */}
-            <Route path="/lameramenu" element={<BookContainer />} />
+            <Route path="/" element={<BookContainer />} />
 
             {/* Example of another route */}
-            <Route path="/lameramenu/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </Router>
       </CartProvider>
